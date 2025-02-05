@@ -1,37 +1,110 @@
-import Link from "next/link";
+"use client"
 
-export default function HomePage() {
+import { useState } from "react"
+import { File, mockFiles } from "../lib/mock-data"
+import { Folder, FileIcon, Upload, ChevronRight } from "lucide-react"
+import Link from "next/link"
+import { Button } from "~/components/ui/button"
+
+export default function GoogleDriveClone() {
+  const [currentFolder, setCurrentFolder] = useState<string | null>(null)
+
+  const getCurrentFiles = () => {
+    return mockFiles.filter((file) => file.parent === currentFolder)
+  }
+
+  const handleFolderClick = (folderId: string) => {
+    setCurrentFolder(folderId)
+  }
+
+  const getBreadcrumbs = () => {
+    const breadcrumbs = []
+    let currentId = currentFolder
+
+    while (currentId !== null) {
+      const folder = mockFiles.find((file) => file.id === currentId)
+      if (folder) {
+        breadcrumbs.unshift(folder)
+        currentId = folder.parent
+      } else {
+        break
+      }
+    }
+
+    return breadcrumbs
+  }
+
+  const handleUpload = () => {
+    alert("Upload functionality would be implemented here")
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-        <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center">
+            <Button
+              onClick={() => setCurrentFolder(null)}
+              variant="ghost"
+              className="text-gray-300 hover:text-white mr-2"
+            >
+              My Drive
+            </Button>
+            {getBreadcrumbs().map((folder, index) => (
+              <div key={folder.id} className="flex items-center">
+                <ChevronRight className="mx-2 text-gray-500" size={16} />
+                <Button
+                  onClick={() => handleFolderClick(folder.id)}
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white"
+                >
+                  {folder.name}
+                </Button>
+              </div>
+            ))}
+          </div>
+          <Button onClick={handleUpload} className="bg-blue-600 text-white hover:bg-blue-700">
+            <Upload className="mr-2" size={20} />
+            Upload
+          </Button>
+        </div>
+        <div className="bg-gray-800 rounded-lg shadow-xl">
+          <div className="px-6 py-4 border-b border-gray-700">
+            <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-400">
+              <div className="col-span-6">Name</div>
+              <div className="col-span-3">Type</div>
+              <div className="col-span-3">Size</div>
             </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
+          </div>
+          <ul>
+            {getCurrentFiles().map((file) => (
+              <li key={file.id} className="px-6 py-4 border-b border-gray-700 hover:bg-gray-750">
+                <div className="grid grid-cols-12 gap-4 items-center">
+                  <div className="col-span-6 flex items-center">
+                    {file.type === "folder" ? (
+                      <button
+                        onClick={() => handleFolderClick(file.id)}
+                        className="flex items-center text-gray-100 hover:text-blue-400"
+                      >
+                        <Folder className="mr-3" size={20} />
+                        {file.name}
+                      </button>
+                    ) : (
+                      <Link href={file.url || "#"} className="flex items-center text-gray-100 hover:text-blue-400">
+                        <FileIcon className="mr-3" size={20} />
+                        {file.name}
+                      </Link>
+                    )}
+                  </div>
+                  <div className="col-span-3 text-gray-400">{file.type === "folder" ? "Folder" : "File"}</div>
+                  <div className="col-span-3 text-gray-400">{file.type === "folder" ? "--" : "2 MB"}</div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-    </main>
-  );
+    </div>
+  )
 }
+
